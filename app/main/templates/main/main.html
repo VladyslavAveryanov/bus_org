@@ -34,17 +34,13 @@
                         <label class="form-label">Закінчення</label>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="end-option" id="no-end" value="none" checked>
-                            <label class="form-check-label" for="no-end">
-                                Без закінчення
-                            </label>
+                            <label class="form-check-label" for="no-end">Без закінчення</label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="end-option" id="duration" value="duration">
-                            <label class="form-check-label" for="duration">
-                                Тривалість
-                            </label>
+                            <label class="form-check-label" for="duration">Тривалість</label>
                         </div>
-                        <div id="duration-inputs" style="display: none;">
+                        <div id="duration-inputs" style="display: none;" class="mt-2">
                             <div class="row">
                                 <div class="col">
                                     <label for="duration-hours" class="form-label">Години</label>
@@ -58,11 +54,9 @@
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="end-option" id="end-time" value="end-time">
-                            <label class="form-check-label" for="end-time">
-                                Час закінчення
-                            </label>
+                            <label class="form-check-label" for="end-time">Час закінчення</label>
                         </div>
-                        <div id="end-time-inputs" style="display: none;">
+                        <div id="end-time-inputs" style="display: none;" class="mt-2">
                             <div class="row">
                                 <div class="col">
                                     <label for="end-date" class="form-label">Дата закінчення</label>
@@ -83,7 +77,7 @@
                         <input type="checkbox" class="form-check-input" id="is-recurring" name="is_recurring">
                         <label class="form-check-label" for="is-recurring">Повторювана подія</label>
                     </div>
-                    <div id="recurring-options" style="display: none;">
+                    <div id="recurring-options" style="display: none;" class="mb-3">
                         <div class="mb-3">
                             <label for="repeat-interval" class="form-label">Інтервал повторення (дні)</label>
                             <input type="number" class="form-control" id="repeat-interval" name="repeat_interval" min="1" value="1">
@@ -138,11 +132,24 @@
 
 <script>
     $(document).ready(function() {
+        // Перевірка, чи jQuery завантажено
+        if (typeof $ === 'undefined') {
+            console.error('jQuery не завантажено');
+            return;
+        }
+
+        // Ініціалізація стану полів
+        $('#duration-inputs').hide();
+        $('#end-time-inputs').hide();
+        $('#recurring-options').hide();
+
+        // Обробка радіокнопок для вибору закінчення
         $('input[name="end-option"]').on('change', function() {
-            const selectedOption = $(this).val();
+            console.log('Радіокнопка змінена:', $(this).val()); // Логування для діагностики
             $('#duration-inputs').hide();
             $('#end-time-inputs').hide();
 
+            const selectedOption = $(this).val();
             if (selectedOption === 'duration') {
                 $('#duration-inputs').show();
             } else if (selectedOption === 'end-time') {
@@ -150,7 +157,9 @@
             }
         });
 
+        // Обробка повторюваних подій
         $('#is-recurring').on('change', function() {
+            console.log('Чекбокс повторення змінено:', $(this).is(':checked')); // Логування для діагностики
             if ($(this).is(':checked')) {
                 $('#recurring-options').show();
             } else {
@@ -158,6 +167,7 @@
             }
         });
 
+        // Обробка відправки форми
         $('#create-item-form').on('submit', function(e) {
             e.preventDefault();
 
@@ -169,10 +179,19 @@
                 end_time: null
             };
 
-            // Обробка кінцевого часу
+            // Перевірка та обробка кінцевого часу
             const endOption = $('input[name="end-option"]:checked').val();
-            if (endOption === 'end-time' && $('#end-date').val() && $('#end-time').val()) {
-                formData.end_time = $('#end-date').val() + 'T' + $('#end-time').val() + ':00';
+            if (endOption === 'end-time') {
+                const endDate = $('#end-date').val();
+                const endTime = $('#end-time').val();
+                if (endDate && endTime) {
+                    formData.end_time = `${endDate}T${endTime}:00`;
+                } else if (!endDate && !endTime) {
+                    formData.end_time = null; // Якщо не вказано, залишаємо null
+                } else {
+                    alert('Будь ласка, введіть повну дату та час закінчення');
+                    return;
+                }
             } else if (endOption === 'duration') {
                 const hours = parseInt($('#duration-hours').val()) || 0;
                 const minutes = parseInt($('#duration-minutes').val()) || 0;
@@ -191,12 +210,14 @@
                 formData.repeat_count = parseInt($('#repeat-count').val()) || 1;
             }
 
+            console.log('Sending data:', JSON.stringify(formData)); // Логування для діагностики
+
             $.ajax({
                 url: '{% url "create_item" %}',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(formData),
-                beforeSend: function(xhr, settings) {
+                beforeSend: function(xhr) {
                     xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
                 },
                 success: function(response) {
@@ -207,6 +228,7 @@
                     }
                 },
                 error: function(xhr, status, error) {
+                    console.log('Error response:', xhr.responseText); // Логування помилки
                     alert('Сталася помилка: ' + error);
                 }
             });
@@ -243,7 +265,7 @@
 
 <style>
     .col-md-7 {
-        margin-left: auto; /* Зміщуємо список ближче до правого краю */
+        margin-left: auto;
     }
 </style>
 {% endblock %}

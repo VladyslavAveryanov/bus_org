@@ -5,30 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Tasko{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .nav-container {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #000;
+            margin-right: 20px; /* Відступ від назви */
+        }
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #000; /* Чорний колір для кнопок */
+            font-weight: 500;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+            color: #333; /* Темніший відтінок при наведенні */
+        }
+        .logout-form {
+            margin-left: auto; /* Розташування виходу справа */
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'main' %}">Tasko</a>
-            <div class="navbar-nav">
-                {% if user.is_authenticated %}
-                    <a class="nav-link" href="{% url 'main' %}">Головне меню</a>
-                    <a class="nav-link" href="{% url 'event_list' %}">Події</a>
-                    <a class="nav-link" href="{% url 'kanban' %}">Канбан</a>
-                    <a class="nav-link" href="{% url 'logout' %}">Вийти</a>
-                {% else %}
-                    <a class="nav-link" href="{% url 'login' %}">Увійти</a>
-                    <a class="nav-link" href="{% url 'register' %}">Зареєструватися</a>
-                {% endif %}
-            </div>
+    <div class="nav-container">
+        <div class="nav-brand">Tasko</div>
+        <div class="nav-links">
+            <a href="{% url 'main' %}">Головна</a>
+            <a href="{% url 'events' %}">Події</a>
+            <a href="{% url 'kanban' %}">Канбан</a>
         </div>
-    </nav>
-
+        {% if user.is_authenticated %}
+            <form class="logout-form" method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm">Вийти</button>
+            </form>
+        {% endif %}
+    </div>
     <div class="container mt-4">
         {% block content %}
         {% endblock %}
     </div>
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
